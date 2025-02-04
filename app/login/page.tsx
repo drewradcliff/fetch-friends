@@ -1,10 +1,9 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
+import { login } from "@/actions";
 
 export default function Login() {
-  const router = useRouter();
   const [error, setError] = useState("");
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
@@ -12,20 +11,7 @@ export default function Login() {
     const formData = new FormData(e.target as HTMLFormElement);
 
     try {
-      await fetch(process.env.NEXT_PUBLIC_FETCH_API_URL + "/auth/login", {
-        method: "POST",
-        credentials: "include",
-        body: JSON.stringify({
-          name: formData.get("name"),
-          email: formData.get("email"),
-        }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      router.push("/");
-      router.refresh();
+      await login(formData);
     } catch (error) {
       console.error(error);
       setError("Login failed");

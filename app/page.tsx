@@ -10,9 +10,9 @@ export default async function Home() {
 
   return (
     <div>
-      <header className="flex items-center justify-between p-4 bg-gray-100">
-        <Link className="text-2xl font-bold" href="/">
-          Fetch Friends
+      <header className="flex items-center justify-between py-4 px-8 bg-[#6a1a62] text-white">
+        <Link className="text-3xl" href="/">
+          fetch friends
         </Link>
         <nav>
           <button onClick={handleLogout}>Logout</button>

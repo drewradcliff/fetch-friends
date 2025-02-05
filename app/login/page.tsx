@@ -9,23 +9,19 @@ export default function Login() {
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const formData = new FormData(e.target as HTMLFormElement);
-    // const name = formData.get("name");
-    // const email = formData.get("email");
+    const name = formData.get("name");
+    const email = formData.get("email");
 
     try {
+      await fetch(process.env.NEXT_PUBLIC_FETCH_API_URL + "/auth/login", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name, email }),
+      });
       await login(formData);
-      // const response = await fetch(
-      //   process.env.NEXT_PUBLIC_FETCH_API_URL + "/auth/login",
-      //   {
-      //     credentials: "include",
-      //     method: "POST",
-      //     headers: {
-      //       "Content-Type": "application/json",
-      //     },
-      //     body: JSON.stringify({ name, email }),
-      //   }
-      // );
-      // console.log(response);
     } catch (error) {
       console.error(error);
       setError("Login failed");
@@ -54,7 +50,10 @@ export default function Login() {
           required
           name="email"
         />
-        <button type="submit" className="bg-blue-500 text-white p-2 rounded-md">
+        <button
+          type="submit"
+          className="bg-[#ffbf54] text-white p-2 rounded-md w-full"
+        >
           Login
         </button>
       </form>

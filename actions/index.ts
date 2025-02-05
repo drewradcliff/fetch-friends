@@ -41,7 +41,6 @@ export async function login(formData: FormData) {
 
 export async function logout() {
   const cookieStore = await cookies();
-  cookieStore.delete("fetch-access-token");
   await fetch(process.env.FETCH_API_URL + "/auth/logout", {
     method: "POST",
     credentials: "include",
@@ -49,5 +48,6 @@ export async function logout() {
       "Content-Type": "application/json",
     },
   });
+  cookieStore.delete("fetch-access-token");
   redirect("/login");
 }

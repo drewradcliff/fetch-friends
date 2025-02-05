@@ -48,7 +48,7 @@ export default function Login() {
           name="name"
         />
         <input
-          type="text"
+          type="email"
           placeholder="Email"
           className="border-2 border-gray-300 rounded-md p-2"
           required

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { FavoritesProvider } from "@/providers/favorites-context";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -27,7 +28,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#F9F7F2]`}
       >
-        {children}
+        <main>
+          <FavoritesProvider>{children}</FavoritesProvider>
+        </main>
       </body>
     </html>
   );

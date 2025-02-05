@@ -2,9 +2,12 @@
 
 import { FormEvent, useState } from "react";
 import { login } from "@/actions";
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 
 export default function Login() {
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -13,6 +16,7 @@ export default function Login() {
     const email = formData.get("email");
 
     try {
+      setIsLoading(true);
       await fetch(process.env.NEXT_PUBLIC_FETCH_API_URL + "/auth/login", {
         method: "POST",
         credentials: "include",
@@ -50,12 +54,13 @@ export default function Login() {
           required
           name="email"
         />
-        <button
+        <Button
+          className="bg-[#ffbf54] text-white w-full hover:bg-[#ffbf54]/90"
           type="submit"
-          className="bg-[#ffbf54] text-white p-2 rounded-md w-full"
+          disabled={isLoading}
         >
-          Login
-        </button>
+          {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Login"}
+        </Button>
       </form>
     </div>
   );

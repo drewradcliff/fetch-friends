@@ -1,8 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useSprings, animated } from "@react-spring/web";
-import { useDrag } from "@use-gesture/react";
+import { useState } from "react";
 import { useFavorites } from "@/providers/favorites-context";
 import { fetcher } from "@/lib/utils";
 import { Dog, Match } from "@/types";
@@ -11,20 +9,8 @@ import Header from "../header";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { CheckCircleIcon } from "lucide-react";
-
-const to = (i: number) => ({
-  x: 0,
-  y: i * -10,
-  scale: 1,
-  rot: -10 + Math.random() * 20,
-  delay: i * 100,
-});
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const from = (_i: number) => ({ x: 0, rot: 0, scale: 1.5, y: -1000 });
-const trans = (r: number, s: number) =>
-  `perspective(1500px) rotateX(30deg) rotateY(${
-    r / 10
-  }deg) rotateZ(${r}deg) scale(${s})`;
+import useSWR from "swr";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function Favorites() {
   const { favorites } = useFavorites();
@@ -84,7 +70,7 @@ export default function Favorites() {
 
 function MatchesList() {
   const { matches, removeMatch } = useFavorites();
-  const { data, isLoading } = useSWRImmutable<Dog[]>(
+  const { data, isLoading } = useSWR<Dog[]>(
     matches.length > 0 ? ["/dogs", matches] : null,
     ([url, matches]) =>
       fetcher(url, {
@@ -146,167 +132,121 @@ function MatchesList() {
 }
 
 function DogList({ dogs }: { dogs: Dog[] }) {
-  const [gone] = useState(() => new Set());
-  const { favorites, removeFavorite, matches, addMatch, removeMatch } =
-    useFavorites();
+  const { matches, addMatch, removeMatch, removeFavorite } = useFavorites();
   const [swipeList, setSwipeList] = useState<Dog[]>(dogs);
-  const matchList = swipeList.filter((dog) => {
-    if (dog.id && !matches.includes(dog.id)) {
-      return dog;
-    }
-  });
   const [showConfetti, setShowConfetti] = useState(false);
-  const confettiCount = 50;
-  const confettiSpring = useSprings(
-    confettiCount,
-    Array.from({ length: confettiCount }).map(() => ({
-      from: {
-        top: "50%",
-        left: "50%",
-        transform: "scale(0) rotate(0deg)",
-      },
-      to: {
-        top: `${Math.random() * 100}%`,
-        left: `${Math.random() * 100}%`,
-        transform: `scale(1) rotate(${Math.random() * 360}deg)`,
-      },
-      config: {
-        duration: 1000,
-        friction: 30,
-      },
-    }))
-  );
 
   const { data } = useSWRImmutable<Match>(
-    ["/dogs/match", matchList],
+    ["/dogs/match", swipeList],
     ([url, matchList]) =>
-      fetcher(url, { method: "POST", body: JSON.stringify(matchList) }),
-    {
-      revalidateOnFocus: false,
-      revalidateOnReconnect: false,
-      revalidateIfStale: false,
-    }
+      fetcher(url, { method: "POST", body: JSON.stringify(matchList) })
   );
 
-  const [props, api] = useSprings(swipeList.length, (i) => ({
-    ...to(i),
-    from: from(i),
-  }));
+  const handleDragEnd = async (
+    event: unknown,
+    info: { offset: { x: number } },
+    index: number
+  ) => {
+    const swipe = info.offset.x;
+    const swipeThreshold = window.innerWidth / 4;
 
-  useEffect(() => {
-    api.start((i) => to(i));
-  }, [api]);
-
-  const bind = useDrag(
-    ({
-      args: [index],
-      active,
-      movement: [mx],
-      direction: [xDir],
-      velocity,
-    }) => {
-      const trigger =
-        Math.abs(mx) > window.innerWidth / 5 || Math.abs(velocity[0]) > 0.2;
-      const dir = xDir < 0 ? -1 : 1;
-      if (!active && trigger) {
-        gone.add(index);
-      }
-      api.start((i) => {
-        if (index !== i) return;
-        const isGone = gone.has(index);
-        const x = isGone ? (200 + window.innerWidth) * dir : active ? mx : 0;
-        const rot = mx / 100 + (isGone ? dir * 10 * velocity[0] : 0);
-        const scale = active ? 1.1 : 1;
-        if (isGone) {
-          if (dir === 1) {
-            if (data?.match.id === swipeList[index].id) {
-              setShowConfetti(true);
-              setTimeout(() => {
-                setShowConfetti(false);
-                addMatch(swipeList[index].id);
-                setSwipeList((prev) =>
-                  prev.filter((dog) => dog.id !== swipeList[index].id)
-                );
-                removeFavorite(swipeList[index].id);
-              }, 2000);
-            } else {
-              setSwipeList((prev) =>
-                prev.filter((dog) => dog.id !== swipeList[index].id)
-              );
-              removeFavorite(swipeList[index].id);
-            }
-          } else {
+    if (Math.abs(swipe) > swipeThreshold) {
+      if (swipe > 0) {
+        // Swiped right
+        if (data?.match.id === swipeList[index].id) {
+          setShowConfetti(true);
+          setTimeout(() => {
+            setShowConfetti(false);
+            addMatch(swipeList[index].id);
             setSwipeList((prev) =>
               prev.filter((dog) => dog.id !== swipeList[index].id)
             );
             removeFavorite(swipeList[index].id);
-            removeMatch(swipeList[index].id);
-          }
+          }, 2000);
+        } else {
+          setSwipeList((prev) =>
+            prev.filter((dog) => dog.id !== swipeList[index].id)
+          );
+          removeFavorite(swipeList[index].id);
         }
-        return {
-          x,
-          rot,
-          scale,
-          delay: undefined,
-          config: { friction: 50, tension: active ? 800 : isGone ? 200 : 500 },
-        };
-      });
-      if (!active && gone.size === favorites.length)
-        setTimeout(() => {
-          gone.clear();
-          api.start((i) => to(i));
-        }, 600);
+      } else {
+        // Swiped left
+        setSwipeList((prev) =>
+          prev.filter((dog) => dog.id !== swipeList[index].id)
+        );
+        removeFavorite(swipeList[index].id);
+        removeMatch(swipeList[index].id);
+      }
     }
-  );
+  };
+
   return (
     <div className="relative h-[500px] w-full max-w-[300px] mx-auto">
-      {showConfetti &&
-        confettiSpring.map((props, i) => (
-          <animated.div
-            key={i}
-            style={{
-              position: "fixed",
-              width: "10px",
-              height: "10px",
-              backgroundColor: `hsl(${Math.random() * 360}, 80%, 60%)`,
-              borderRadius: "50%",
-              pointerEvents: "none",
-              zIndex: 1000,
-              ...props,
+      {showConfetti && (
+        <motion.div className="fixed inset-0 pointer-events-none">
+          {Array.from({ length: 50 }).map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-2.5 h-2.5 rounded-full"
+              initial={{
+                top: "50%",
+                left: "50%",
+                scale: 0,
+                backgroundColor: `hsl(${Math.random() * 360}, 80%, 60%)`,
+              }}
+              animate={{
+                top: `${Math.random() * 100}%`,
+                left: `${Math.random() * 100}%`,
+                scale: 1,
+                rotate: Math.random() * 360,
+              }}
+              transition={{ duration: 1, ease: "easeOut" }}
+            />
+          ))}
+        </motion.div>
+      )}
+
+      <AnimatePresence>
+        {swipeList.map((dog, index) => (
+          <motion.div
+            key={dog.id}
+            className="absolute w-full h-full"
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{
+              x: Math.random() > 0.5 ? 1000 : -1000,
+              opacity: 0,
+              transition: { duration: 0.3 },
             }}
-          />
-        ))}
-      {props.map(({ x, y, rot, scale }, i) => (
-        <animated.div
-          className="absolute w-full h-full will-change-transform"
-          key={i}
-          style={{ x, y }}
-        >
-          <animated.div
-            {...bind(i)}
-            style={{
-              transform: rot.to(trans),
-              scale,
-              backgroundImage: `url(${swipeList[i].img})`,
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-            }}
-            className="absolute w-full h-full rounded-lg overflow-hidden shadow-md cursor-grab"
           >
-            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/90 to-transparent text-white">
-              {matches.includes(swipeList[i].id) && (
-                <p className="text-md text-blue-500 flex items-center gap-2">
-                  <CheckCircleIcon className="w-4 h-4" />
-                  Match
-                </p>
-              )}
-              <h2 className="text-xl font-bold">{swipeList[i].name}</h2>
-              <p>{swipeList[i].breed}</p>
-              <p>{swipeList[i].age} years old</p>
-            </div>
-          </animated.div>
-        </animated.div>
-      ))}
+            <motion.div
+              className="w-full h-full rounded-lg overflow-hidden shadow-md cursor-grab"
+              drag="x"
+              dragConstraints={{ left: 0, right: 0 }}
+              dragElastic={1}
+              onDragEnd={(_, info) => handleDragEnd(_, info, index)}
+              style={{
+                backgroundImage: `url(${dog.img})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+              }}
+              whileDrag={{ scale: 1.1 }}
+            >
+              <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/90 to-transparent text-white">
+                {matches.includes(dog.id) && (
+                  <p className="text-md text-blue-500 flex items-center gap-2">
+                    <CheckCircleIcon className="w-4 h-4" />
+                    Match
+                  </p>
+                )}
+                <h2 className="text-xl font-bold">{dog.name}</h2>
+                <p>{dog.breed}</p>
+                <p>{dog.age} years old</p>
+              </div>
+            </motion.div>
+          </motion.div>
+        ))}
+      </AnimatePresence>
     </div>
   );
 }

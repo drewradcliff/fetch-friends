@@ -27,9 +27,9 @@ export default function Favorites() {
   return (
     <>
       <Header />
-      <div className="max-w-screen-sm mx-auto flex flex-col py-8">
+      <div className="max-w-screen-sm mx-auto flex flex-col py-4 sm:py-8 px-4 sm:px-0">
         <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold py-4">
+          <h1 className="text-xl sm:text-2xl font-bold py-4">
             {showMatches ? "Your Matches" : "Find your match"}
           </h1>
           <Button

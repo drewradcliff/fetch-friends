@@ -1,3 +1,5 @@
+> **Note:** Make sure to allow third-party cookies in your browser for authentication to work properly.
+
 # fetch friends 🐾
 
 A take-home exercise for [Fetch](https://fetch.com). Find your perfect canine companion by swiping through pups.

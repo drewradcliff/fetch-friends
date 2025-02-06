@@ -102,7 +102,7 @@ export default function Home() {
     <>
       <Header />
       <div className="max-w-screen-xl mx-auto flex flex-col gap-4 py-4">
-        <div className="flex flex-row gap-2 items-center py-4">
+        <div className="flex flex-row gap-2 items-center py-4 px-4 sm:px-0">
           <ComboBox
             data={breeds}
             placeholder="Select Breed"
@@ -119,11 +119,11 @@ export default function Home() {
             </SelectContent>
           </Select>
         </div>
-        <div className="grid grid-cols-5 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 lg:gap-8 px-4 sm:px-0">
           {dogs?.map(({ id, img, name, age, breed }) => (
             <div
               key={id}
-              className="border border-gray-300 rounded-xl flex flex-col gap-2 justify-center bg-white py-2"
+              className="border border-gray-300 rounded-xl flex flex-col gap-2 justify-center bg-white py-2 w-full"
             >
               <div className="flex items-center justify-between px-3">
                 <span className="flex items-center gap-2">
@@ -150,14 +150,8 @@ export default function Home() {
                   />
                 </Button>
               </div>
-              <div className="relative w-[200px] h-[200px] mx-auto">
-                <Image
-                  src={img}
-                  alt={name}
-                  fill
-                  sizes="200px"
-                  className="object-cover"
-                />
+              <div className="relative w-full aspect-square mx-auto">
+                <Image src={img} alt={name} fill className="object-cover" />
               </div>
               <div className="flex flex-col gap-2 px-3">
                 <p className="text-sm text-gray-500">{breed}</p>
@@ -165,50 +159,53 @@ export default function Home() {
             </div>
           ))}
         </div>
-        <Pagination>
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                onClick={() => {
-                  if (currentPage > 1) setCurrentPage(currentPage - 1);
-                }}
-                className={
-                  currentPage === 1
-                    ? "pointer-events-none opacity-50"
-                    : "cursor-pointer"
-                }
-              />
-            </PaginationItem>
-            {getPageNumbers().map((pageNum) => (
-              <PaginationItem key={pageNum}>
-                <PaginationLink
-                  className="cursor-pointer"
-                  onClick={() => setCurrentPage(pageNum)}
-                  isActive={currentPage === pageNum}
-                >
-                  {pageNum}
-                </PaginationLink>
-              </PaginationItem>
-            ))}
-            {currentPage < totalPages - 2 && (
+        <div className="px-4 sm:px-0">
+          <Pagination>
+            <PaginationContent>
               <PaginationItem>
-                <PaginationEllipsis />
+                <PaginationPrevious
+                  onClick={() => {
+                    if (currentPage > 1) setCurrentPage(currentPage - 1);
+                  }}
+                  className={
+                    currentPage === 1
+                      ? "pointer-events-none opacity-50"
+                      : "cursor-pointer"
+                  }
+                />
               </PaginationItem>
-            )}
-            <PaginationItem>
-              <PaginationNext
-                onClick={() => {
-                  if (currentPage < totalPages) setCurrentPage(currentPage + 1);
-                }}
-                className={
-                  currentPage === totalPages
-                    ? "pointer-events-none opacity-50"
-                    : "cursor-pointer"
-                }
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
+              {getPageNumbers().map((pageNum) => (
+                <PaginationItem key={pageNum}>
+                  <PaginationLink
+                    className="cursor-pointer"
+                    onClick={() => setCurrentPage(pageNum)}
+                    isActive={currentPage === pageNum}
+                  >
+                    {pageNum}
+                  </PaginationLink>
+                </PaginationItem>
+              ))}
+              {currentPage < totalPages - 2 && (
+                <PaginationItem>
+                  <PaginationEllipsis />
+                </PaginationItem>
+              )}
+              <PaginationItem>
+                <PaginationNext
+                  onClick={() => {
+                    if (currentPage < totalPages)
+                      setCurrentPage(currentPage + 1);
+                  }}
+                  className={
+                    currentPage === totalPages
+                      ? "pointer-events-none opacity-50"
+                      : "cursor-pointer"
+                  }
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
       </div>
     </>
   );

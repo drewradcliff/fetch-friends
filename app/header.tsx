@@ -9,11 +9,11 @@ export default function Header() {
   }
 
   return (
-    <header className="flex items-center justify-between py-4 px-12 bg-[#6a1a62] text-white">
-      <Link className="text-3xl" href="/">
+    <header className="flex items-center justify-between py-4 px-4 sm:px-12 bg-[#6a1a62] text-white">
+      <Link className="text-xl sm:text-3xl" href="/">
         fetch friends
       </Link>
-      <div className="flex items-center gap-6">
+      <div className="flex items-center gap-2 sm:gap-6">
         <Link href="/favorites">Favorites</Link>
         <Link href="/faq">FAQ</Link>
         <nav>

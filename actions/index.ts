@@ -32,11 +32,9 @@ export async function login(formData: FormData) {
     });
   }
 
-  if (!response.ok) {
-    throw new Error("Login failed");
+  if (response.ok) {
+    redirect("/");
   }
-
-  redirect("/");
 }
 
 export async function logout() {

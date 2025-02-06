@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 
 export default function Login() {
-  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
@@ -28,14 +27,12 @@ export default function Login() {
       await login(formData);
     } catch (error) {
       console.error(error);
-      setError("Login failed");
     }
   }
 
   return (
     <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
       <h1 className="text-2xl font-bold pb-4">Login</h1>
-      {error && <p className="text-red-500">{error}</p>}
       <form
         onSubmit={handleSubmit}
         className="flex flex-col items-center justify-center gap-4"
